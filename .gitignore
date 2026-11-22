@@ -2,6 +2,8 @@
 .venv/
 venv/
 env/
+.tmp/
+.pip_cache/
 __pycache__/
 *.py[cod]
 *$py.class
