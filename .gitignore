@@ -2,6 +2,9 @@
 .venv/
 venv/
 env/
+.tmp/
+.pip_cache/
+.cache/
 __pycache__/
 *.py[cod]
 *$py.class
@@ -21,6 +24,12 @@ ml/runs/
 # External SDKs in root
 flutter_windows_*/
 platform-tools*/
+
+# SSH & Secrets
+id_*
+*.pem
+*.key
+*.pub
 
 # Flutter / Dart
 .dart_tool/
