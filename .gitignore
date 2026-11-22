@@ -1,0 +1,42 @@
+# Environments & Python
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Dataset & Raw Archives
+dataset-nix.zip
+ml/data/
+
+# Model Checkpoints, Weights & Run Logs
+ml/runs/
+*.pt
+*.pth
+*.onnx
+
+# External SDKs in root
+flutter_windows_*/
+platform-tools*/
+
+# Flutter / Dart
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+mobile/build/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+
+# IDEs & OS Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
