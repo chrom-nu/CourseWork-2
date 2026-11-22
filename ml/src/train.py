@@ -17,6 +17,11 @@ from dataset import get_dataloader, CLASS_TO_IDX
 
 # Set mpl / cache dir if needed
 os.environ.setdefault("MPLCONFIGDIR", os.path.abspath(os.path.join(".tmp", "matplotlib")))
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stderr.reconfigure(encoding='utf-8')
+except Exception:
+    pass
 
 def set_seed(seed: int = 42):
     random.seed(seed)
@@ -234,7 +239,7 @@ def train(args):
             best_val_macro_f1 = val_macro_f1
             best_epoch = epoch
             torch.save(checkpoint, os.path.join(run_dir, "best_model.pt"))
-            print(f"⭐ New best checkpoint saved at epoch {epoch} (Val Macro F1: {val_macro_f1:.4f})")
+            print(f"[*] New best checkpoint saved at epoch {epoch} (Val Macro F1: {val_macro_f1:.4f})")
 
     writer.close()
     print(f"\nTraining completed for {run_name}!")

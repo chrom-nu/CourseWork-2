@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import argparse
 import numpy as np
@@ -13,6 +14,11 @@ from dataset import get_dataloader, CLASS_TO_IDX, IDX_TO_CLASS
 from train import get_model
 
 os.environ.setdefault("MPLCONFIGDIR", os.path.abspath(os.path.join(".tmp", "matplotlib")))
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stderr.reconfigure(encoding='utf-8')
+except Exception:
+    pass
 
 def evaluate_checkpoint(checkpoint_path: str, split: str = "val", batch_size: int = 32, data_dir: str = os.path.join("ml", "data"), output_dir: str = None):
     if not os.path.exists(checkpoint_path):

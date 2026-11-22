@@ -4,6 +4,7 @@ venv/
 env/
 .tmp/
 .pip_cache/
+.cache/
 __pycache__/
 *.py[cod]
 *$py.class
