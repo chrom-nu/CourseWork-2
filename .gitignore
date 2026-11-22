@@ -24,6 +24,12 @@ ml/runs/
 flutter_windows_*/
 platform-tools*/
 
+# SSH & Secrets
+id_*
+*.pem
+*.key
+*.pub
+
 # Flutter / Dart
 .dart_tool/
 .packages
