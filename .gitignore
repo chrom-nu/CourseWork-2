@@ -13,7 +13,8 @@ __pycache__/
 
 # Dataset & Raw Archives
 dataset-nix.zip
-ml/data/
+ml/data/*
+!ml/data/*.csv
 
 # Model Checkpoints, Weights & Run Logs
 ml/runs/
