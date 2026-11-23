@@ -13,6 +13,8 @@ __pycache__/
 
 # Dataset & Raw Archives
 dataset-nix.zip
+ml/data/*
+!ml/data/*.csv
 ml/data/
 ml/reports/dataset_report.*
 
@@ -51,4 +53,11 @@ mobile/.flutter-plugins-dependencies
 Thumbs.db
 desktop.ini
 
+# Local DB, uploads & env
+*.db
 .env
+backend/uploads/
+backend/test_uploads/
+backend/backend/
+test_api.db
+test.db

@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: plant_disease_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: plant_disease_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d plant_disease_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: plant-disease-api:latest
+    container_name: plant_disease_api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/plant_disease_db
+      SYNC_DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/plant_disease_db
+      MODEL_CHECKPOINT_PATH: /app/ml/runs/resnet34_weighted_seed42/best_model.pt
+      MODEL_ARCH: resnet34
+      IMG_SIZE: 224
+      DEVICE: cpu
+      TEMPERATURE: 1.0
+      UPLOAD_DIR: /app/backend/uploads
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./ml/runs/resnet34_weighted_seed42/best_model.pt:/app/ml/runs/resnet34_weighted_seed42/best_model.pt:ro
+      - uploads_data:/app/backend/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  uploads_data:
