@@ -1,0 +1,61 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ main, "feature/**" ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Backend Tests & Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install PyTorch (CPU-only) & Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+          pip install -r backend/requirements.txt
+          pip install flake8
+
+      - name: Lint with Flake8
+        run: |
+          # Stop build if syntax errors or undefined names exist
+          flake8 backend/app shared --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Warning level checks
+          flake8 backend/app shared --count --exit-zero --max-complexity=15 --max-line-length=120 --statistics
+
+      - name: Run Backend Pytest Suite
+        env:
+          DATABASE_URL: sqlite+aiosqlite:///./ci_test.db
+          SYNC_DATABASE_URL: sqlite:///./ci_test.db
+          MODEL_CHECKPOINT_PATH: ml/runs/resnet34_weighted_seed42/best_model.pt
+          DEVICE: cpu
+        run: |
+          pytest backend/tests/test_health.py backend/tests/test_model_info.py backend/tests/test_predict.py backend/tests/test_feedback.py backend/tests/test_preprocessing.py -v
+
+  docker:
+    name: Docker Build Verification
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: actions/setup-buildx-action@v3
+
+      - name: Build API Docker Image
+        run: |
+          docker build -t plant-disease-api:ci -f backend/Dockerfile .

@@ -1,40 +1,26 @@
 import os
+import sys
 from PIL import Image
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 import matplotlib.pyplot as plt
 
-CLASS_TO_IDX = {"healthy": 0, "sick": 1}
-IDX_TO_CLASS = {0: "healthy", 1: "sick"}
+# Ensure workspace root is in sys.path
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
 
-# ImageNet statistics for normalization
-IMAGENET_MEAN = [0.485, 0.456, 0.406]
-IMAGENET_STD = [0.229, 0.224, 0.225]
+from shared.transforms import (
+    CLASS_TO_IDX,
+    IDX_TO_CLASS,
+    IMAGENET_MEAN,
+    IMAGENET_STD,
+    get_transforms,
+    get_eval_transforms,
+    preprocess_image,
+)
 
-def get_transforms(split: str, img_size: int = 224):
-    """
-    Returns torchvision transforms for a given split.
-    - train: resize, random resized crop/crop, horizontal/vertical flip, color jitter, normalization.
-    - val / test / unlabeled: resize to 1.15x, center crop to img_size, normalization.
-    """
-    if split == "train":
-        return transforms.Compose([
-            transforms.RandomResizedCrop(img_size, scale=(0.8, 1.0), ratio=(0.9, 1.1)),
-            transforms.RandomHorizontalFlip(p=0.5),
-            transforms.RandomVerticalFlip(p=0.5),
-            transforms.ColorJitter(brightness=0.15, contrast=0.15, saturation=0.15, hue=0.05),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
-        ])
-    else:
-        resize_dim = int(img_size * 1.14)
-        return transforms.Compose([
-            transforms.Resize((resize_dim, resize_dim)),
-            transforms.CenterCrop(img_size),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
-        ])
 
 class PlantDataset(Dataset):
     """
@@ -70,6 +56,7 @@ class PlantDataset(Dataset):
             img = self.transform(img)
         return img, target
 
+
 class UnlabeledPlantDataset(Dataset):
     """
     Dataset for unlabeled images.
@@ -99,6 +86,7 @@ class UnlabeledPlantDataset(Dataset):
             img = self.transform(img)
         return img, path
 
+
 def get_dataloader(
     root_dir: str = os.path.join("ml", "data"),
     split: str = "train",
@@ -125,6 +113,7 @@ def get_dataloader(
         pin_memory=torch.cuda.is_available()
     )
 
+
 def denormalize(tensor: torch.Tensor) -> torch.Tensor:
     """
     Invert ImageNet normalization for visualization.
@@ -134,6 +123,7 @@ def denormalize(tensor: torch.Tensor) -> torch.Tensor:
     std = torch.tensor(IMAGENET_STD).view(3, 1, 1)
     t = t * std + mean
     return torch.clamp(t, 0.0, 1.0)
+
 
 def save_augmentation_grid(output_path: str, data_dir: str = os.path.join("ml", "data"), img_size: int = 224):
     """
@@ -155,21 +145,3 @@ def save_augmentation_grid(output_path: str, data_dir: str = os.path.join("ml", 
     plt.savefig(output_path, dpi=200, bbox_inches="tight")
     plt.close()
     print(f"Saved augmentation grid to: {output_path}")
-
-if __name__ == "__main__":
-    print("Testing PlantDataset and DataLoader...")
-    data_dir = os.path.join("ml", "data")
-    
-    for split in ["train", "val", "test"]:
-        loader = get_dataloader(root_dir=data_dir, split=split, batch_size=16, num_workers=2, img_size=224)
-        batch_imgs, batch_lbls = next(iter(loader))
-        print(f"[{split.upper()}] Total: {len(loader.dataset)}, Batch Images: {batch_imgs.shape}, Batch Labels: {batch_lbls.shape}")
-
-    unlabeled_loader = get_dataloader(root_dir=data_dir, split="unlabeled", batch_size=16, num_workers=2, img_size=224)
-    u_imgs, u_paths = next(iter(unlabeled_loader))
-    print(f"[UNLABELED] Total: {len(unlabeled_loader.dataset)}, Batch Images: {u_imgs.shape}, Paths count: {len(u_paths)}")
-
-    # Save visual augmentation grid
-    grid_path = os.path.join("ml", "reports", "augmentation_grid.png")
-    save_augmentation_grid(grid_path, data_dir=data_dir, img_size=224)
-    print("Dataset & DataLoader test passed successfully!")
